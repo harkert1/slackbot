@@ -8,12 +8,13 @@ BOT_ID = os.environ.get("BOT_ID")
 
 # constants
 AT_BOT = "<@" + BOT_ID + ">"
-EXAMPLE_COMMAND = "do"
+EXAMPLE_COMMAND = 'do '
 WORD_LIST = ['cancer', 'ebola', 'teemo']
 
 # instantiate Slack & Twilio clients
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
-
+turtleEvent = 'the third day of the Group Stage at MSI 2017 (TSM vs WE). '
+turtleLink = 'https://clips.twitch.tv/HonestFunLorisCoolCat'
 
 def handle_command(command, channel):
     """
@@ -22,15 +23,20 @@ def handle_command(command, channel):
         returns back what it needs for clarification.
     """
     response = "Not sure what you mean. Use the *" + EXAMPLE_COMMAND + \
-               "* command with numbers, delimited by spaces."
+               "* command."
     if command.startswith(EXAMPLE_COMMAND):
         response = "do it yourself"
+    elif ('wild turtle' in command.lower()) | ('wildturtle' in command.lower()):
+        response = 'The last time WildTurtle died while attempting to 1v5 was during ' \
+                   + turtleEvent + turtleLink
     slack_client.api_call("chat.postMessage", channel=channel,
                           text=response, as_user=True)
 
 
-def add_reax(channel,timestamp):
-    slack_client.api_call("reactions.add", name='ebola', channel=channel, timestamp=timestamp, as_user=True)
+def add_reax(command, channel, timestamp):
+    if ('cancer' in command) | ('ebola' in command) | ('teemo' in command):
+        slack_client.api_call("reactions.add", name='ebola', channel=channel, timestamp=timestamp, as_user=True)
+
 
 def parse_slack_output(slack_rtm_output):
     """
@@ -61,7 +67,7 @@ if __name__ == "__main__":
             if command and channel and type == 'command':
                 handle_command(command, channel)
             elif command and channel and timestamp and type == 'reaction':
-                add_reax(channel, timestamp)
+                add_reax(command, channel, timestamp)
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
